@@ -1,0 +1,171 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "centralstorage001Type": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_ZRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Premium_LRS"
+            ]
+        },
+        "2012-DC-1Name": {
+            "type": "string",
+            "minLength": 1
+        },
+        "2012-DC-1AdminUserName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "2012-DC-1AdminPassword": {
+            "type": "securestring"
+        },
+        "2012-DC-1WindowsOSVersion": {
+            "type": "string",
+            "defaultValue": "2012-R2-Datacenter",
+            "allowedValues": [
+                "2008-R2-SP1",
+                "2012-Datacenter",
+                "2012-R2-Datacenter",
+                "Windows-Server-Technical-Preview"
+            ]
+        }
+    },
+    "resources": [
+        {
+            "name": "Central-US-Vnet-1",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [],
+            "tags": {
+                "displayName": "Central-US-Vnet-1"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('Central-US-Vnet-1Prefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('Central-US-Vnet-1Subnet1Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('Central-US-Vnet-1Subnet1Prefix')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('Central-US-Vnet-1Subnet2Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('Central-US-Vnet-1Subnet2Prefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('centralstorage001Name')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [],
+            "tags": {
+                "displayName": "centralstorage001"
+            },
+            "properties": {
+                "accountType": "[parameters('centralstorage001Type')]"
+            }
+        },
+        {
+            "name": "[variables('2012-DC-1NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'Central-US-Vnet-1')]"
+            ],
+            "tags": {
+                "displayName": "2012-DC-1Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('2012-DC-1SubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('2012-DC-1Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('centralstorage001Name'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('2012-DC-1NicName'))]"
+            ],
+            "tags": {
+                "displayName": "2012-DC-1"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('2012-DC-1VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('2012-DC-1Name')]",
+                    "adminUsername": "[parameters('2012-DC-1AdminUsername')]",
+                    "adminPassword": "[parameters('2012-DC-1AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('2012-DC-1ImagePublisher')]",
+                        "offer": "[variables('2012-DC-1ImageOffer')]",
+                        "sku": "[parameters('2012-DC-1WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "2012-DC-1OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('centralstorage001Name'), '.blob.core.windows.net/', variables('2012-DC-1StorageAccountContainerName'), '/', variables('2012-DC-1OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('2012-DC-1NicName'))]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "variables": {
+        "Central-US-Vnet-1Prefix": "10.0.0.0/16",
+        "Central-US-Vnet-1Subnet1Name": "Subnet-1",
+        "Central-US-Vnet-1Subnet1Prefix": "10.0.0.0/24",
+        "Central-US-Vnet-1Subnet2Name": "Subnet-2",
+        "Central-US-Vnet-1Subnet2Prefix": "10.0.1.0/24",
+        "centralstorage001Name": "[concat('centralstorage001', uniqueString(resourceGroup().id))]",
+        "2012-DC-1ImagePublisher": "MicrosoftWindowsServer",
+        "2012-DC-1ImageOffer": "WindowsServer",
+        "2012-DC-1OSDiskName": "2012-DC-1OSDisk",
+        "2012-DC-1VmSize": "Standard_D1",
+        "2012-DC-1VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'Central-US-Vnet-1')]",
+        "2012-DC-1SubnetRef": "[concat(variables('2012-DC-1VnetID'), '/subnets/', variables('Central-US-Vnet-1Subnet1Name'))]",
+        "2012-DC-1StorageAccountContainerName": "vhds",
+        "2012-DC-1NicName": "[concat(parameters('2012-DC-1Name'), 'NetworkInterface')]"
+    }
+}
