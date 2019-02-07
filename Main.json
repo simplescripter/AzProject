@@ -75,6 +75,7 @@
                 "osProfile": {
                     "computerName": "[parameters('virtualMachines_Server2016_name')]",
                     "adminUsername": "student",
+                    "adminPassword": "Pa55w.rd1234",
                     "windowsConfiguration": {
                         "provisionVMAgent": true,
                         "enableAutomaticUpdates": true
