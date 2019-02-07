@@ -4,39 +4,39 @@
     "parameters": {
         "virtualNetworks_Vnet_100_name": {
             "defaultValue": "Vnet-100",
-            "type": "String"
+            "type": "string"
         },
         "virtualMachines_Server2016_name": {
             "defaultValue": "Server2016",
-            "type": "String"
+            "type": "string"
         },
         "storageAccounts_test1diag593_name": {
             "defaultValue": "test1diag593",
-            "type": "String"
+            "type": "string"
         },
         "networkInterfaces_server2016203_name": {
             "defaultValue": "server2016203",
-            "type": "String"
+            "type": "string"
         },
         "publicIPAddresses_Server2016_ip_name": {
             "defaultValue": "Server2016-ip",
-            "type": "String"
+            "type": "string"
         },
         "networkSecurityGroups_Server2016_nsg_name": {
             "defaultValue": "Server2016-nsg",
-            "type": "String"
+            "type": "string"
         },
         "subnets_subnet_1_name": {
             "defaultValue": "subnet-1",
-            "type": "String"
+            "type": "string"
         },
         "securityRules_RDP_name": {
             "defaultValue": "RDP",
-            "type": "String"
+            "type": "string"
         },
         "virtualMachines_Server2016_id": {
             "defaultValue": "/subscriptions/cb4c9463-4fdf-470a-ab7b-fb305d9f3f34/resourceGroups/Test1/providers/Microsoft.Compute/disks/Server2016_OsDisk_1_a879902d1dd64f98a552e4347789f205",
-            "type": "String"
+            "type": "string"
         }
     },
     "variables": {},
@@ -169,7 +169,7 @@
                         "etag": "W/\"f8217f59-ce1b-4550-9c58-f8ec3dc6d098\"",
                         "properties": {
                             "provisioningState": "Succeeded",
-                            "protocol": "TCP",
+                            "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "3389",
                             "sourceAddressPrefix": "*",
